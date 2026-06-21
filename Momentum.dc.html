@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:#f1ede5;font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;color:#211f1c;-webkit-font-smoothing:antialiased}
+  ::selection{background:#e8743b;color:#fff}
+  input,button{font-family:inherit}
+  input::placeholder{color:#b0a899}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#dcd5c7;border-radius:99px;border:3px solid #f1ede5}
+  @keyframes checkdraw{from{stroke-dashoffset:26}to{stroke-dashoffset:0}}
+  @keyframes pop{0%{transform:scale(.4)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
+  @keyframes burst{0%{transform:scale(.55);opacity:.5}100%{transform:scale(2.3);opacity:0}}
+  @keyframes risein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  @keyframes modalin{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;background:#f1ede5">
+
+  <sc-if value="{{ showSidebar }}" hint-placeholder-val="{{ true }}">
+    <aside style="width:272px;flex:none;position:sticky;top:0;height:100vh;overflow-y:auto;background:#ece6da;border-right:1px solid #e1dacc;padding:24px 18px 22px">
+      <div style="display:flex;align-items:center;gap:11px;padding:4px 6px 22px">
+        <span style="width:34px;height:34px;border-radius:10px;background:#211f1c;display:grid;place-items:center;flex:none">
+          <span style="width:13px;height:13px;border-radius:50%;border:2.5px solid #e8743b;border-right-color:transparent;transform:rotate(-45deg)"></span>
+        </span>
+        <span>
+          <span style="display:block;font-family:'Schibsted Grotesk',sans-serif;font-weight:700;font-size:17px;letter-spacing:-.01em;line-height:1">Momentum</span>
+          <span style="display:block;font-size:11px;color:#9a9384;font-family:'JetBrains Mono',monospace;letter-spacing:.02em;margin-top:2px">keep the chain alive</span>
+        </span>
+      </div>
+
+      <button onClick="{{ onToday }}" style="{{ navTodayStyle }}">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex:none"><circle cx="9" cy="9" r="6.4" stroke="currentColor" stroke-width="1.7"/><circle cx="9" cy="9" r="2.2" fill="currentColor"/></svg>
+        <span style="flex:1">Today</span>
+        <span style="{{ navTodayBadge }}">{{ navTodayCount }}</span>
+      </button>
+      <button onClick="{{ onWeek }}" style="{{ navWeekStyle }}">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex:none"><rect x="2.5" y="6" width="3" height="9" rx="1.2" fill="currentColor"/><rect x="7.5" y="3" width="3" height="12" rx="1.2" fill="currentColor"/><rect x="12.5" y="8.5" width="3" height="6.5" rx="1.2" fill="currentColor"/></svg>
+        <span style="flex:1">This Week</span>
+      </button>
+      <button onClick="{{ onProjects }}" style="{{ navProjStyle }}">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex:none"><rect x="2.5" y="3.5" width="13" height="2.6" rx="1.3" fill="currentColor"/><rect x="2.5" y="7.7" width="10" height="2.6" rx="1.3" fill="currentColor"/><rect x="2.5" y="11.9" width="7" height="2.6" rx="1.3" fill="currentColor"/></svg>
+        <span style="flex:1">Projects</span>
+      </button>
+
+      <div style="margin:18px 4px 8px;padding:15px 15px 14px;background:#211f1c;border-radius:16px;color:#f4efe6">
+        <div style="display:flex;align-items:baseline;gap:7px">
+          <span style="font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:34px;line-height:.9;color:{{ accent }}">{{ streak }}</span>
+          <span style="font-size:13px;color:#b8b1a3;line-height:1.1">day<br/>streak</span>
+        </div>
+        <div style="display:flex;gap:5px;margin-top:13px">
+          <sc-for list="{{ streakDots }}" as="d" hint-placeholder-count="7">
+            <span style="{{ d.style }}"></span>
+          </sc-for>
+        </div>
+        <div style="font-size:11.5px;color:#9d968a;margin-top:10px;font-family:'JetBrains Mono',monospace">{{ streakLabel }}</div>
+      </div>
+
+      <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#a8a191;font-weight:600;padding:6px 8px 4px">Projects</div>
+      <sc-for list="{{ sideProjects }}" as="p" hint-placeholder-count="6">
+        <button onClick="{{ p.onClick }}" style="{{ p.rowStyle }}">
+          <span style="{{ p.dotStyle }}"></span>
+          <span style="flex:1;min-width:0">
+            <span style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <span style="font-size:13.5px;font-weight:600;color:#3a362f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span>
+              <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#a39c8c;flex:none">{{ p.pctLabel }}</span>
+            </span>
+            <span style="display:block;height:5px;border-radius:99px;background:#ddd5c6;margin-top:6px;overflow:hidden">
+              <span style="{{ p.barStyle }}"></span>
+            </span>
+          </span>
+        </button>
+      </sc-for>
+      <sc-if value="{{ newProjOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:11px;padding:9px 8px">
+          <span style="width:9px;height:9px;border-radius:50%;flex:none;background:#c7bfb0"></span>
+          <input value="{{ newProjValue }}" onInput="{{ onNewProjInput }}" onKeyDown="{{ onNewProjKey }}" onBlur="{{ onNewProjCancel }}" autofocus="{{ true }}" placeholder="Project name…" style="flex:1;border:none;border-bottom:1.5px solid #e8743b;background:none;font-size:13.5px;font-weight:600;color:#3a362f;outline:none;padding:2px 0" />
+        </div>
+      </sc-if>
+      <sc-if value="{{ newProjClosed }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ onNewProjStart }}" style="display:flex;align-items:center;gap:11px;width:100%;border:none;cursor:pointer;text-align:left;padding:9px 8px;border-radius:11px;background:transparent;color:#a39c8c;font-size:13px;font-weight:600" style-hover="background:#e0d9ca;color:#56524a">
+          <span style="width:18px;height:18px;flex:none;border-radius:50%;border:1.5px dashed #c0b8a8;display:grid;place-items:center;font-size:13px">+</span>
+          New project
+        </button>
+      </sc-if>
+    </aside>
+  </sc-if>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:6;background:rgba(241,237,229,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid #e6e0d4;display:flex;align-items:flex-end;justify-content:space-between;gap:14px;{{ headerPad }}">
+      <div style="min-width:0">
+        <div style="font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#a8a191;font-family:'JetBrains Mono',monospace">{{ greeting }}</div>
+        <h1 style="font-family:'Schibsted Grotesk',sans-serif;font-weight:700;font-size:27px;letter-spacing:-.02em;margin:3px 0 0;color:#211f1c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ viewTitle }}</h1>
+        <div style="font-size:13px;color:#837c6d;margin-top:2px">{{ viewSub }}</div>
+      </div>
+      <button onClick="{{ onOpenRecap }}" style="flex:none;display:flex;align-items:center;gap:7px;background:#211f1c;color:#f4efe6;border:none;border-radius:11px;padding:10px 15px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="filter:brightness(1.25)">
+        <svg width="15" height="15" viewBox="0 0 18 18" fill="none"><path d="M9 1.5l2.1 4.5 4.9.5-3.7 3.3 1.1 4.9L9 12.7 4.6 15.2l1.1-4.9L2 7l4.9-.5z" fill="{{ accent }}"/></svg>
+        <span style="white-space:nowrap">Weekly wins</span>
+      </button>
+    </header>
+
+    <div style="{{ contentPad }}">
+
+      <!-- ===================== TODAY ===================== -->
+      <sc-if value="{{ isToday }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:risein .4s cubic-bezier(.2,.7,.3,1) both">
+          <div style="display:flex;align-items:center;gap:22px;background:#faf7f1;border:1px solid #ebe4d6;border-radius:20px;padding:22px 24px;margin-bottom:22px;box-shadow:0 1px 2px rgba(70,55,30,.04)">
+            <div style="{{ todayRing.boxStyle }}">
+              <svg width="{{ todayRing.size }}" height="{{ todayRing.size }}" viewBox="0 0 44 44" style="transform:rotate(-90deg);overflow:visible"><circle cx="22" cy="22" r="19" fill="none" stroke="#ebe4d6" stroke-width="4.5"/><circle cx="22" cy="22" r="19" fill="none" stroke="{{ todayRing.color }}" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="{{ todayRing.circ }}" stroke-dashoffset="{{ todayRing.off }}" style="transition:stroke-dashoffset .8s cubic-bezier(.2,.7,.3,1)"/></svg>
+              <div style="{{ todayRing.labelStyle }}">{{ todayRing.pct }}%</div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-family:'Schibsted Grotesk',sans-serif;font-weight:700;font-size:20px;color:#211f1c;letter-spacing:-.01em">{{ todayHeadline }}</div>
+              <div style="font-size:14px;color:#837c6d;margin-top:3px">{{ todaySub }}</div>
+            </div>
+          </div>
+
+          <sc-if value="{{ todayEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;padding:46px 20px;background:#faf7f1;border:1px dashed #ddd5c6;border-radius:20px">
+              <div style="font-family:'Schibsted Grotesk',sans-serif;font-weight:700;font-size:19px">Nothing due today</div>
+              <div style="font-size:14px;color:#837c6d;margin-top:6px;max-width:340px;margin-left:auto;margin-right:auto">A clear runway. Pull something forward from this week, or enjoy the breather.</div>
+              <button onClick="{{ onWeek }}" style="margin-top:16px;background:#211f1c;color:#f4efe6;border:none;border-radius:10px;padding:10px 18px;font-size:13.5px;font-weight:600;cursor:pointer">View this week</button>
+            </div>
+          </sc-if>
+
+          <sc-for list="{{ todayGroups }}" as="g" hint-placeholder-count="3">
+            <div style="margin-bottom:18px">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px;padding-left:2px">
+                <span style="{{ g.dotStyle }}"></span>
+                <span style="font-size:13px;font-weight:700;color:#3a362f;letter-spacing:.01em">{{ g.name }}</span>
+                <span style="font-size:11.5px;font-family:'JetBrains Mono',monospace;color:#a8a191">{{ g.count }}</span>
+              </div>
+              <div style="background:#faf7f1;border:1px solid #ebe4d6;border-radius:16px;padding:5px 7px">
+                <sc-for list="{{ g.tasks }}" as="task" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;gap:11px;padding:9px 8px;border-radius:11px" style-hover="background:#f2eee5">
+                    <button onClick="{{ task.onToggle }}" style="position:relative;flex:none;width:25px;height:25px;border:none;background:none;cursor:pointer;padding:0;display:grid;place-items:center">
+                      <sc-if value="{{ task.just }}" hint-placeholder-val="{{ false }}"><span style="{{ task.burstStyle }}"></span></sc-if>
+                      <sc-if value="{{ task.done }}" hint-placeholder-val="{{ false }}">
+                        <span style="width:25px;height:25px;border-radius:50%;display:grid;place-items:center;animation:pop .42s cubic-bezier(.2,.7,.3,1);background:{{ task.color }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="26" style="animation:checkdraw .4s ease .03s both"/></svg></span>
+                      </sc-if>
+                      <sc-if value="{{ task.notDone }}" hint-placeholder-val="{{ true }}"><span style="width:22px;height:22px;border-radius:50%;border:2px solid #cfc7b6" style-hover="border-color:{{ task.color }}"></span></sc-if>
+                    </button>
+                    <sc-if value="{{ task.editing }}" hint-placeholder-val="{{ false }}"><input value="{{ task.editValue }}" onInput="{{ task.onEditInput }}" onKeyDown="{{ task.onEditKey }}" onBlur="{{ task.onEditBlur }}" autofocus="{{ true }}" style="flex:1;border:none;border-bottom:1.5px solid #e8743b;background:none;font-size:15px;color:#211f1c;outline:none;padding:1px 0" /></sc-if>
+                    <sc-if value="{{ task.notEditing }}" hint-placeholder-val="{{ true }}"><button onClick="{{ task.onStartEdit }}" style="{{ task.titleStyle }}">{{ task.title }}</button></sc-if>
+                    <button onClick="{{ task.onDelete }}" style="flex:none;width:24px;height:24px;border:none;background:none;color:#c3bbac;cursor:pointer;font-size:17px;border-radius:7px;opacity:.6" style-hover="opacity:1;background:#efe9dd;color:#9a5">×</button>
+                  </div>
+                </sc-for>
+                <div style="display:flex;align-items:center;gap:11px;padding:8px 8px">
+                  <span style="width:22px;height:22px;flex:none;border-radius:50%;border:1.5px dashed #cfc7b6;display:grid;place-items:center;color:#b4ac9c;font-size:15px">+</span>
+                  <input value="{{ g.addValue }}" onInput="{{ g.onAddInput }}" onKeyDown="{{ g.onAddKey }}" placeholder="Add a task for today…" style="flex:1;border:none;background:none;font-size:15px;color:#211f1c;outline:none" />
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- ===================== THIS WEEK ===================== -->
+      <sc-if value="{{ isWeek }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:risein .4s cubic-bezier(.2,.7,.3,1) both">
+          <div style="display:grid;grid-template-columns:{{ weekGridCols }};gap:12px;margin-bottom:24px">
+            <sc-for list="{{ weekProjects }}" as="wp" hint-placeholder-count="6">
+              <button onClick="{{ wp.onClick }}" style="text-align:left;background:#faf7f1;border:1px solid #ebe4d6;border-radius:16px;padding:14px 15px;cursor:pointer;display:flex;gap:12px;align-items:center" style-hover="border-color:#d8cfbd;transform:translateY(-1px)">
+                <div style="{{ wp.ring.boxStyle }}">
+                  <svg width="{{ wp.ring.size }}" height="{{ wp.ring.size }}" viewBox="0 0 44 44" style="transform:rotate(-90deg)"><circle cx="22" cy="22" r="19" fill="none" stroke="#ebe4d6" stroke-width="4.5"/><circle cx="22" cy="22" r="19" fill="none" stroke="{{ wp.ring.color }}" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="{{ wp.ring.circ }}" stroke-dashoffset="{{ wp.ring.off }}" style="transition:stroke-dashoffset .8s cubic-bezier(.2,.7,.3,1)"/></svg>
+                  <div style="{{ wp.ring.labelStyle }}">{{ wp.ring.pct }}</div>
+                </div>
+                <span style="min-width:0">
+                  <span style="display:block;font-size:12.5px;font-weight:700;color:#3a362f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ wp.name }}</span>
+                  <span style="display:block;font-size:12px;color:#857e6f;margin-top:2px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ wp.goal }}</span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+
+          <sc-for list="{{ weekDays }}" as="day" hint-placeholder-count="7">
+            <div style="{{ day.rowStyle }}">
+              <div style="flex:none;width:62px;text-align:center;padding-top:3px">
+                <div style="{{ day.numStyle }}">{{ day.num }}</div>
+                <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#a8a191;letter-spacing:.05em;text-transform:uppercase;margin-top:1px">{{ day.wd }}</div>
+              </div>
+              <div style="flex:1;min-width:0">
+                <sc-if value="{{ day.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:13.5px;color:#b4ac9c;padding:8px 4px">No tasks scheduled</div></sc-if>
+                <sc-for list="{{ day.tasks }}" as="task" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;gap:10px;padding:7px 6px;border-radius:10px" style-hover="background:#f2eee5">
+                    <button onClick="{{ task.onToggle }}" style="position:relative;flex:none;width:23px;height:23px;border:none;background:none;cursor:pointer;padding:0;display:grid;place-items:center">
+                      <sc-if value="{{ task.just }}" hint-placeholder-val="{{ false }}"><span style="{{ task.burstStyle }}"></span></sc-if>
+                      <sc-if value="{{ task.done }}" hint-placeholder-val="{{ false }}"><span style="width:23px;height:23px;border-radius:50%;display:grid;place-items:center;animation:pop .42s cubic-bezier(.2,.7,.3,1);background:{{ task.color }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="26" style="animation:checkdraw .4s ease .03s both"/></svg></span></sc-if>
+                      <sc-if value="{{ task.notDone }}" hint-placeholder-val="{{ true }}"><span style="width:21px;height:21px;border-radius:50%;border:2px solid #cfc7b6" style-hover="border-color:{{ task.color }}"></span></sc-if>
+                    </button>
+                    <span style="{{ task.titleStyle }}">{{ task.title }}</span>
+                    <span style="flex:none;display:flex;align-items:center;gap:6px;margin-left:auto"><span style="{{ task.dotStyle }}"></span><span style="font-size:11.5px;color:#a8a191;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis">{{ task.projName }}</span></span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- ===================== PROJECT ===================== -->
+      <sc-if value="{{ isProject }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:risein .4s cubic-bezier(.2,.7,.3,1) both">
+          <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;margin-bottom:6px">
+            <sc-for list="{{ projChips }}" as="c" hint-placeholder-count="6">
+              <button onClick="{{ c.onClick }}" style="{{ c.style }}"><span style="{{ c.dotStyle }}"></span>{{ c.name }}</button>
+            </sc-for>
+            <sc-if value="{{ newProjOpenMobile }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ newProjValue }}" onInput="{{ onNewProjInput }}" onKeyDown="{{ onNewProjKey }}" onBlur="{{ onNewProjCancel }}" autofocus="{{ true }}" placeholder="Project name…" style="flex:none;border:1px solid #e8743b;background:#fff;border-radius:99px;padding:8px 14px;font-size:13px;font-weight:600;color:#3a362f;outline:none;min-width:170px" />
+            </sc-if>
+            <sc-if value="{{ newProjClosedMobile }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ onNewProjStart }}" style="display:flex;align-items:center;gap:7px;flex:none;border:1px dashed #c0b8a8;background:transparent;color:#8a8273;border-radius:99px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">+ New</button>
+            </sc-if>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:20px;background:#faf7f1;border:1px solid #ebe4d6;border-radius:20px;padding:20px 22px;margin-bottom:22px">
+            <div style="{{ projRing.boxStyle }}">
+              <svg width="{{ projRing.size }}" height="{{ projRing.size }}" viewBox="0 0 44 44" style="transform:rotate(-90deg);overflow:visible"><circle cx="22" cy="22" r="19" fill="none" stroke="#ebe4d6" stroke-width="4.5"/><circle cx="22" cy="22" r="19" fill="none" stroke="{{ projRing.color }}" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="{{ projRing.circ }}" stroke-dashoffset="{{ projRing.off }}" style="transition:stroke-dashoffset .8s cubic-bezier(.2,.7,.3,1)"/></svg>
+              <div style="{{ projRing.labelStyle }}">{{ projRing.pct }}%</div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-family:'Schibsted Grotesk',sans-serif;font-weight:700;font-size:21px;letter-spacing:-.01em;color:#211f1c">{{ sel.name }}</div>
+              <div style="font-size:13.5px;color:#857e6f;margin-top:3px">{{ sel.sub }}</div>
+            </div>
+            <sc-if value="{{ canDelete }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ onDeleteProject }}" style="flex:none;align-self:flex-start;border:none;background:none;color:#bdb4a4;font-size:12px;font-weight:600;cursor:pointer;padding:4px 6px;border-radius:7px" style-hover="background:#f3e3da;color:#c0613a">Delete</button>
+            </sc-if>
+          </div>
+
+          <sc-for list="{{ projWeeks }}" as="wk" hint-placeholder-count="3">
+            <div style="{{ wk.cardStyle }}">
+              <div style="display:flex;align-items:center;gap:13px;padding:4px 4px 12px;border-bottom:1px solid #ece5d8;margin-bottom:6px">
+                <div style="{{ wk.ring.boxStyle }}">
+                  <svg width="{{ wk.ring.size }}" height="{{ wk.ring.size }}" viewBox="0 0 44 44" style="transform:rotate(-90deg)"><circle cx="22" cy="22" r="19" fill="none" stroke="#ebe4d6" stroke-width="5"/><circle cx="22" cy="22" r="19" fill="none" stroke="{{ wk.ring.color }}" stroke-width="5" stroke-linecap="round" stroke-dasharray="{{ wk.ring.circ }}" stroke-dashoffset="{{ wk.ring.off }}" style="transition:stroke-dashoffset .8s cubic-bezier(.2,.7,.3,1)"/></svg>
+                  <div style="{{ wk.ring.labelStyle }}">{{ wk.ring.pct }}</div>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:9px">
+                    <span style="{{ wk.tagStyle }}">{{ wk.tag }}</span>
+                    <span style="font-size:11.5px;font-family:'JetBrains Mono',monospace;color:#a8a191">{{ wk.range }}</span>
+                  </div>
+                  <sc-if value="{{ wk.goalEditing }}" hint-placeholder-val="{{ false }}"><input value="{{ wk.goalValue }}" onInput="{{ wk.onGoalInput }}" onKeyDown="{{ wk.onGoalKey }}" onBlur="{{ wk.onGoalBlur }}" autofocus="{{ true }}" placeholder="Weekly goal…" style="width:100%;border:none;border-bottom:1.5px solid #e8743b;background:none;font-family:'Schibsted Grotesk',sans-serif;font-weight:600;font-size:16.5px;color:#2a2720;outline:none;margin-top:3px;padding:1px 0" /></sc-if>
+                  <sc-if value="{{ wk.goalNotEditing }}" hint-placeholder-val="{{ true }}"><button onClick="{{ wk.onGoalEdit }}" style="{{ wk.goalStyle }}">{{ wk.goalDisplay }}</button></sc-if>
+                </div>
+                <span style="flex:none;font-size:12px;font-family:'JetBrains Mono',monospace;color:#857e6f">{{ wk.stat }}</span>
+              </div>
+              <sc-for list="{{ wk.tasks }}" as="task" hint-placeholder-count="3">
+                <div draggable="{{ task.draggable }}" onDragStart="{{ task.onDragStart }}" onDragOver="{{ task.onDragOver }}" onDrop="{{ task.onDrop }}" style="{{ task.rowStyle }}" style-hover="background:#f2eee5">
+                  <span style="flex:none;display:flex;flex-direction:column;gap:2px;cursor:grab;color:#cfc7b6;padding:0 1px"><span style="width:3px;height:3px;border-radius:50%;background:currentColor"></span><span style="width:3px;height:3px;border-radius:50%;background:currentColor"></span><span style="width:3px;height:3px;border-radius:50%;background:currentColor"></span></span>
+                  <button onClick="{{ task.onToggle }}" style="position:relative;flex:none;width:24px;height:24px;border:none;background:none;cursor:pointer;padding:0;display:grid;place-items:center">
+                    <sc-if value="{{ task.just }}" hint-placeholder-val="{{ false }}"><span style="{{ task.burstStyle }}"></span></sc-if>
+                    <sc-if value="{{ task.done }}" hint-placeholder-val="{{ false }}"><span style="width:24px;height:24px;border-radius:50%;display:grid;place-items:center;animation:pop .42s cubic-bezier(.2,.7,.3,1);background:{{ task.color }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="26" style="animation:checkdraw .4s ease .03s both"/></svg></span></sc-if>
+                    <sc-if value="{{ task.notDone }}" hint-placeholder-val="{{ true }}"><span style="width:21px;height:21px;border-radius:50%;border:2px solid #cfc7b6" style-hover="border-color:{{ task.color }}"></span></sc-if>
+                  </button>
+                  <sc-if value="{{ task.editing }}" hint-placeholder-val="{{ false }}"><input value="{{ task.editValue }}" onInput="{{ task.onEditInput }}" onKeyDown="{{ task.onEditKey }}" onBlur="{{ task.onEditBlur }}" autofocus="{{ true }}" style="flex:1;border:none;border-bottom:1.5px solid #e8743b;background:none;font-size:15px;color:#211f1c;outline:none;padding:1px 0" /></sc-if>
+                  <sc-if value="{{ task.notEditing }}" hint-placeholder-val="{{ true }}"><button onClick="{{ task.onStartEdit }}" style="{{ task.titleStyle }}">{{ task.title }}</button></sc-if>
+                  <span style="flex:none;font-size:11px;font-family:'JetBrains Mono',monospace;color:#b4ac9c;white-space:nowrap">{{ task.dateLabel }}</span>
+                  <div style="flex:none;display:flex;gap:1px">
+                    <button onClick="{{ task.onUp }}" style="width:22px;height:22px;border:none;background:none;color:#c3bbac;cursor:pointer;border-radius:6px;font-size:11px;opacity:.55" style-hover="opacity:1;background:#efe9dd">↑</button>
+                    <button onClick="{{ task.onDown }}" style="width:22px;height:22px;border:none;background:none;color:#c3bbac;cursor:pointer;border-radius:6px;font-size:11px;opacity:.55" style-hover="opacity:1;background:#efe9dd">↓</button>
+                    <button onClick="{{ task.onDelete }}" style="width:22px;height:22px;border:none;background:none;color:#c3bbac;cursor:pointer;border-radius:6px;font-size:16px;opacity:.55" style-hover="opacity:1;background:#efe9dd;color:#c0613a">×</button>
+                  </div>
+                </div>
+              </sc-for>
+              <div style="display:flex;align-items:center;gap:11px;padding:8px 6px 4px">
+                <span style="width:21px;height:21px;flex:none;border-radius:50%;border:1.5px dashed #cfc7b6;display:grid;place-items:center;color:#b4ac9c;font-size:14px;margin-left:13px">+</span>
+                <input value="{{ wk.addValue }}" onInput="{{ wk.onAddInput }}" onKeyDown="{{ wk.onAddKey }}" placeholder="Add a task…" style="flex:1;border:none;background:none;font-size:15px;color:#211f1c;outline:none" />
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+
+  <sc-if value="{{ showBottomNav }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(236,230,218,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid #ddd5c6;display:flex;padding:8px 10px calc(8px + env(safe-area-inset-bottom))">
+      <button onClick="{{ onToday }}" style="{{ tabTodayStyle }}"><svg width="20" height="20" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.4" stroke="currentColor" stroke-width="1.7"/><circle cx="9" cy="9" r="2.2" fill="currentColor"/></svg><span style="font-size:10.5px;font-weight:600">Today</span></button>
+      <button onClick="{{ onWeek }}" style="{{ tabWeekStyle }}"><svg width="20" height="20" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="6" width="3" height="9" rx="1.2" fill="currentColor"/><rect x="7.5" y="3" width="3" height="12" rx="1.2" fill="currentColor"/><rect x="12.5" y="8.5" width="3" height="6.5" rx="1.2" fill="currentColor"/></svg><span style="font-size:10.5px;font-weight:600">Week</span></button>
+      <button onClick="{{ onProjects }}" style="{{ tabProjStyle }}"><svg width="20" height="20" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="3.5" width="13" height="2.6" rx="1.3" fill="currentColor"/><rect x="2.5" y="7.7" width="10" height="2.6" rx="1.3" fill="currentColor"/><rect x="2.5" y="11.9" width="7" height="2.6" rx="1.3" fill="currentColor"/></svg><span style="font-size:10.5px;font-weight:600">Projects</span></button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ recapOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseRecap }}" style="position:fixed;inset:0;z-index:40;background:rgba(33,31,28,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadein .2s ease">
+      <div onClick="{{ stop }}" style="width:100%;max-width:440px;max-height:88vh;overflow-y:auto;background:#f6f2ea;border-radius:22px;padding:26px 26px 24px;box-shadow:0 24px 60px rgba(40,30,15,.32);animation:modalin .35s cubic-bezier(.2,.7,.3,1)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <div style="font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#a8a191;font-family:'JetBrains Mono',monospace">This week</div>
+            <div style="font-family:'Schibsted Grotesk',sans-serif;font-weight:700;font-size:24px;letter-spacing:-.02em;margin-top:2px">Your wins so far</div>
+          </div>
+          <button onClick="{{ onCloseRecap }}" style="width:32px;height:32px;border:none;background:#ebe4d6;border-radius:9px;cursor:pointer;color:#7a7264;font-size:18px">×</button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:18px;margin:20px 0 6px;padding:18px;background:#211f1c;border-radius:18px;color:#f4efe6">
+          <div style="{{ recap.ring.boxStyle }}">
+            <svg width="{{ recap.ring.size }}" height="{{ recap.ring.size }}" viewBox="0 0 44 44" style="transform:rotate(-90deg)"><circle cx="22" cy="22" r="19" fill="none" stroke="#3a362f" stroke-width="4.5"/><circle cx="22" cy="22" r="19" fill="none" stroke="{{ recap.ring.color }}" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="{{ recap.ring.circ }}" stroke-dashoffset="{{ recap.ring.off }}"/></svg>
+            <div style="{{ recap.ring.labelStyle }}">{{ recap.ring.pct }}%</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-family:'Schibsted Grotesk',sans-serif;font-weight:700;font-size:30px;line-height:1"><span style="color:{{ accent }}">{{ recap.done }}</span><span style="color:#6f6a5f;font-size:20px"> / {{ recap.total }}</span></div>
+            <div style="font-size:13px;color:#b8b1a3;margin-top:4px">tasks completed · {{ recap.bestLine }}</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:7px;margin:8px 0 18px;padding:13px 15px;background:#faf7f1;border:1px solid #ebe4d6;border-radius:14px;align-items:center">
+          <span style="font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:26px;color:{{ accent }};line-height:1">{{ streak }}</span>
+          <span style="font-size:13px;color:#6f6a5f;line-height:1.25">day streak — <strong style="color:#3a362f">don't break the chain.</strong></span>
+        </div>
+
+        <div style="font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#a8a191;font-weight:600;margin-bottom:9px">By project</div>
+        <sc-for list="{{ recap.byProject }}" as="r" hint-placeholder-count="4">
+          <div style="margin-bottom:11px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+              <span style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:#3a362f"><span style="{{ r.dotStyle }}"></span>{{ r.name }}</span>
+              <span style="font-size:12px;font-family:'JetBrains Mono',monospace;color:#a8a191">{{ r.stat }}</span>
+            </div>
+            <div style="height:7px;border-radius:99px;background:#e6dfd0;overflow:hidden"><span style="{{ r.barStyle }}"></span></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:820},&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#e8743b&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;greetingName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showWeekends&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.KEY = 'momentum_v2';
+    this.HUES = [32,152,330,255,95,205,12,278,178,52,228,118];
+    const base = this.load();
+    this.state = {
+      projects: base.projects,
+      completed: base.completed,
+      view: 'today',
+      selProject: base.projects[0] ? base.projects[0].id : null,
+      draft: {},
+      editingId: null,
+      editingGoal: null,
+      justDone: {},
+      drag: null,
+      recapOpen: false,
+      newProj: false,
+      vw: (typeof window !== 'undefined') ? window.innerWidth : 1200
+    };
+    this.MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    this.WDL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    this.WDS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  }
+  componentDidMount(){ this._rs = () => this.setState({ vw: window.innerWidth }); window.addEventListener('resize', this._rs); }
+  componentWillUnmount(){ window.removeEventListener('resize', this._rs); }
+  accent(){ return this.props.accentColor || '#e8743b'; }
+
+  // ---- date helpers ----
+  ymd(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), a=String(d.getDate()).padStart(2,'0'); return y+'-'+m+'-'+a; }
+  addDays(b,n){ const x=new Date(b); x.setDate(x.getDate()+n); x.setHours(0,0,0,0); return x; }
+  mondayOf(d){ const x=new Date(d); x.setHours(0,0,0,0); const k=(x.getDay()+6)%7; x.setDate(x.getDate()-k); return x; }
+  parse(s){ const p=s.split('-').map(Number); const d=new Date(p[0],p[1]-1,p[2]); d.setHours(0,0,0,0); return d; }
+  today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+  todayOff(){ return (this.today().getDay()+6)%7; }
+  fmtShort(s){ const d=this.parse(s); return this.WDS[d.getDay()]+' '+d.getDate(); }
+  fmtRange(s){ const a=this.parse(s), b=this.addDays(a,6); const am=this.MON[a.getMonth()], bm=this.MON[b.getMonth()]; return am===bm ? (am+' '+a.getDate()+'–'+b.getDate()) : (am+' '+a.getDate()+' – '+bm+' '+b.getDate()); }
+  // week start (Monday) for a relative week offset, computed live from real today
+  weekStart(off){ return this.addDays(this.mondayOf(this.today()), off*7); }
+  taskDate(off, dayOffset){ return this.ymd(this.addDays(this.weekStart(off), dayOffset)); }
+
+  // ---- persistence ----
+  load(){
+    try{ const raw = localStorage.getItem(this.KEY); if(raw){ const o=JSON.parse(raw); if(o && o.projects && o.projects.length){ o.completed = new Set(o.completed||[]); return o; } } }catch(e){}
+    return this.seed();
+  }
+  save(st){ const s = st || this.state; try{ localStorage.setItem(this.KEY, JSON.stringify({ projects:s.projects, completed:[...s.completed] })); }catch(e){} }
+
+  seed(){
+    let tid=1, wid=1;
+    const todayOff = this.todayOff();
+    const D = [
+      { name:'YouTube Production', handle:'すばらしい君', hue:32, weeks:[
+        { off:-1, goal:'Ship the "studio setup" episode', tasks:[['Finalize script',0],['Record A-roll',1],['Record B-roll',2],['Edit cut 1',3],['Thumbnail + title',4],['Publish + community post',5]] },
+        { off:0, goal:'Get 3 videos in the bank', tasks:[['Outline ep. 7',0],['Film talking-head segment',1],['Batch B-roll shots',2],['Edit ep. 7 rough cut',3],['Design 3 thumbnails',4],['Write next 2 scripts',5]] },
+        { off:1, goal:'Launch a posting cadence', tasks:[['Schedule ep. 7',0],['Cut 3 shorts from ep. 7',1],['Review channel analytics',2]] }
+      ]},
+      { name:'Day Trading', handle:'skill-building', hue:152, weeks:[
+        { off:-1, goal:'Define a rules-based setup', tasks:[['Journal last 20 trades',0],['Write entry checklist',1],['Backtest setup A',2],['Paper-trade session',3],['Review mistakes',4]] },
+        { off:0, goal:'Two clean paper sessions', tasks:[['Pre-market prep routine',0],['Paper session 1',1],['Tag every trade',2],['Paper session 2',3],['Weekly P&L review',4]] },
+        { off:1, goal:'Tighten risk rules', tasks:[['Set max daily loss',0],['Build position-size calc',1]] }
+      ]},
+      { name:'Debt Payoff', handle:'milestones', hue:330, weeks:[
+        { off:-1, goal:'Map every balance', tasks:[['List all balances + APR',0],['Pick avalanche order',2],['Automate minimum payments',4]] },
+        { off:0, goal:'Crush the highest-APR card', tasks:[['Cancel 2 subscriptions',0],['Send extra $300 to card 1',2],['No-spend check-in',4]] },
+        { off:1, goal:'Build a 1-month buffer', tasks:[['Open buffer account',0]] }
+      ]},
+      { name:'NISA Investing', handle:'long-term', hue:255, weeks:[
+        { off:-1, goal:'Finish account setup', tasks:[['Open NISA account',1],['Pick core index funds',3]] },
+        { off:0, goal:'Automate monthly contributions', tasks:[['Set auto-buy date',0],['Choose 70/30 allocation',2],['Add rebalance reminder',4]] },
+        { off:1, goal:'Document the plan', tasks:[['Write 1-page IPS',1]] }
+      ]},
+      { name:'Salary Raise', handle:'the conversation', hue:95, weeks:[
+        { off:-1, goal:'Build the case', tasks:[['List wins + metrics',0],['Gather market salary data',2],['Draft the ask',4]] },
+        { off:0, goal:'Rehearse and schedule', tasks:[['Rehearse the pitch',1],['Book 1:1 with manager',2],['Prep counter-scenarios',3]] },
+        { off:1, goal:'Have the conversation', tasks:[['The meeting',1],['Send follow-up summary',2]] }
+      ]},
+      { name:'Job-App Automation', handle:'side tool', hue:205, weeks:[
+        { off:-1, goal:'Scope the MVP', tasks:[['Define must-have features',0],['Pick tech stack',1],['Set up repo',2],['Sketch data model',3]] },
+        { off:0, goal:'Working end-to-end demo', tasks:[['Build job scraper',0],['Resume-tailor prompt',1],['Autofill form filler',2],['Test on 5 listings',3],['Fix top 3 bugs',4]] },
+        { off:1, goal:'Polish + dogfood', tasks:[['Add tracking dashboard',0],['Apply to 10 jobs with it',2]] }
+      ]}
+    ];
+    const projects = D.map((p,pi) => {
+      const weeks = p.weeks.map(w => {
+        const tasks = w.tasks.map((t,ti) => {
+          let done=false;
+          if(w.off < 0) done = ti % 7 !== 0;
+          else if(w.off === 0) done = (t[1] < todayOff) && (ti % 5 !== 0);
+          return { id:'t'+(tid++), title:t[0], dayOffset:t[1], done, order:ti };
+        });
+        return { id:'w'+(wid++), goal:w.goal, off:w.off, tasks };
+      });
+      return { id:'p'+(pi+1), name:p.name, handle:p.handle, hue:p.hue, weeks };
+    });
+    // guarantee Today has tasks across several projects
+    projects.slice(0,5).forEach((p,i) => {
+      const cw = p.weeks.find(w => w.off===0);
+      if(!cw) return;
+      const cand = cw.tasks.find(t => !t.done && t.dayOffset !== todayOff);
+      if(cand){ cand.dayOffset = todayOff; if(i<2) cand.done = true; }
+    });
+    const completed = new Set();
+    for(let k=1;k<=7;k++) completed.add(this.ymd(this.addDays(this.today(),-k)));
+    let anyToday=false;
+    projects.forEach(p=>p.weeks.forEach(w=>{ if(w.off===0) w.tasks.forEach(t=>{ if(t.done && t.dayOffset===todayOff) anyToday=true; }); }));
+    if(anyToday) completed.add(this.ymd(this.today()));
+    const st = { projects, completed };
+    this.save(st);
+    return st;
+  }
+
+  // ---- lookups ----
+  findTask(id, st){ st=st||this.state; for(const p of st.projects) for(const w of p.weeks) for(const t of w.tasks) if(t.id===id) return {project:p, week:w, task:t}; return null; }
+  findWeek(id, st){ st=st||this.state; for(const p of st.projects) for(const w of p.weeks) if(w.id===id) return w; return null; }
+  update(fn){ this.setState(s => { const ns = { ...s, projects:[...s.projects] }; fn(ns); this.save(ns); return ns; }); }
+
+  // ---- mutations ----
+  toggle(id){
+    const f0 = this.findTask(id);
+    const willDone = f0 && !f0.task.done;
+    this.update(ns => { const f = this.findTask(id, ns); if(f){ f.task.done = !f.task.done; if(f.task.done){ ns.completed = new Set(ns.completed); ns.completed.add(this.ymd(this.today())); } } });
+    if(willDone){
+      this.setState(s => ({ justDone:{ ...s.justDone, [id]:true } }));
+      setTimeout(() => this.setState(s => { const j={...s.justDone}; delete j[id]; return { justDone:j }; }), 850);
+    }
+  }
+  setDraft(k,v){ this.setState(s => ({ draft:{ ...s.draft, [k]:v } })); }
+  add(weekId){
+    const key='add:'+weekId; const title=(this.state.draft[key]||'').trim(); if(!title) return;
+    this.update(ns => { const w=this.findWeek(weekId,ns); if(!w) return; const order=w.tasks.reduce((m,t)=>Math.max(m,t.order),-1)+1; const dayOffset = w.off===0 ? this.todayOff() : 0; w.tasks=[...w.tasks,{ id:'t'+Date.now()+Math.floor(Math.random()*999), title, dayOffset, done:false, order }]; });
+    this.setDraft(key,'');
+  }
+  addToday(projId){
+    const key='today:'+projId; const title=(this.state.draft[key]||'').trim(); if(!title) return;
+    this.update(ns => { const p=ns.projects.find(x=>x.id===projId); const w=p&&p.weeks.find(x=>x.off===0); if(!w) return; const order=w.tasks.reduce((m,t)=>Math.max(m,t.order),-1)+1; w.tasks=[...w.tasks,{ id:'t'+Date.now()+Math.floor(Math.random()*999), title, dayOffset:this.todayOff(), done:false, order }]; });
+    this.setDraft(key,'');
+  }
+  startEdit(id){ const f=this.findTask(id); this.setState(s => ({ editingId:id, draft:{ ...s.draft, edit: f ? f.task.title : '' } })); }
+  commitEdit(){ const id=this.state.editingId; if(!id) return; const title=(this.state.draft.edit||'').trim(); this.update(ns => { const f=this.findTask(id,ns); if(f && title) f.task.title=title; }); this.setState({ editingId:null }); }
+  cancelEdit(){ this.setState({ editingId:null }); }
+  del(id){ this.update(ns => { const f=this.findTask(id,ns); if(f) f.week.tasks=f.week.tasks.filter(t=>t.id!==id); }); }
+  move(weekId,id,dir){ this.update(ns => { const w=this.findWeek(weekId,ns); const arr=[...w.tasks].sort((a,b)=>a.order-b.order); const i=arr.findIndex(t=>t.id===id); const j=i+dir; if(j<0||j>=arr.length) return; const tmp=arr[i]; arr[i]=arr[j]; arr[j]=tmp; arr.forEach((t,k)=>t.order=k); w.tasks=arr; }); }
+  dropAt(weekId,index){ const d=this.state.drag; if(!d||d.weekId!==weekId){ this.setState({drag:null}); return; } this.update(ns => { const w=this.findWeek(weekId,ns); const arr=[...w.tasks].sort((a,b)=>a.order-b.order); const m=arr.splice(d.index,1)[0]; arr.splice(index,0,m); arr.forEach((t,i)=>t.order=i); w.tasks=arr; }); this.setState({drag:null}); }
+
+  // ---- goal editing ----
+  startGoal(weekId){ const w=this.findWeek(weekId); this.setState(s => ({ editingGoal:weekId, draft:{ ...s.draft, goal: w ? w.goal : '' } })); }
+  commitGoal(){ const id=this.state.editingGoal; if(!id) return; const g=(this.state.draft.goal||'').trim(); this.update(ns => { const w=this.findWeek(id,ns); if(w) w.goal=g; }); this.setState({ editingGoal:null }); }
+  cancelGoal(){ this.setState({ editingGoal:null }); }
+
+  // ---- project create / delete ----
+  startNewProj(){ this.setState(s => ({ newProj:true, draft:{ ...s.draft, newproj:'' } })); }
+  cancelNewProj(){ this.setState({ newProj:false }); }
+  commitNewProj(){
+    const name=(this.state.draft.newproj||'').trim(); if(!name){ this.setState({ newProj:false }); return; }
+    let nid;
+    this.update(ns => {
+      const hue=this.HUES[ns.projects.length % this.HUES.length];
+      let max=0; ns.projects.forEach(p=>{ const n=parseInt(String(p.id).replace(/\D/g,''))||0; if(n>max) max=n; });
+      nid='p'+(max+1);
+      const base=Date.now();
+      const weeks=[0,1,-1].map((off,i)=>({ id:'w'+base+'_'+i, goal:'', off, tasks:[] }));
+      ns.projects=[...ns.projects, { id:nid, name, handle:'new project', hue, weeks }];
+    });
+    this.setState(s => ({ newProj:false, view:'project', selProject:nid, draft:{ ...s.draft, newproj:'' } }));
+  }
+  deleteProject(id){
+    if(this.state.projects.length<=1) return;
+    const p=this.state.projects.find(x=>x.id===id);
+    if(typeof window!=='undefined' && !window.confirm('Delete "'+(p?p.name:'this project')+'" and all its tasks?')) return;
+    let nextSel;
+    this.update(ns => { ns.projects=ns.projects.filter(x=>x.id!==id); nextSel = ns.projects[0] ? ns.projects[0].id : null; });
+    this.setState({ selProject:nextSel });
+  }
+
+  streak(){ const c=this.state.completed; const today=this.today(); let n=0; let d=new Date(today); if(!c.has(this.ymd(today))) d=this.addDays(today,-1); while(c.has(this.ymd(d))){ n++; d=this.addDays(d,-1); } return n; }
+  ringOf(frac, color, size){ const circ=119.38; const fs=Math.max(9, Math.round(size*0.255)); return { size, circ:circ.toFixed(1), off:(circ*(1-frac)).toFixed(1), color, pct:Math.round(frac*100), boxStyle:'position:relative;flex:none;width:'+size+'px;height:'+size+'px', labelStyle:"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:"+fs+'px;color:#3a362f' }; }
+  pc(hue){ return 'oklch(0.62 0.14 '+hue+')'; }
+
+  rTask(t, w, p, dateStr, extra){
+    const editing = this.state.editingId === t.id;
+    const color = this.pc(p.hue);
+    const titleStyle = t.done
+      ? "flex:1;min-width:0;text-align:left;background:none;border:none;cursor:text;padding:1px 0;font-size:15px;color:#aaa291;text-decoration:line-through;text-decoration-color:#cfc7b6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:inherit"
+      : "flex:1;min-width:0;text-align:left;background:none;border:none;cursor:text;padding:1px 0;font-size:15px;color:#2c2a24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:inherit";
+    return Object.assign({
+      id:t.id, title:t.title, done:t.done, notDone:!t.done, editing, notEditing:!editing,
+      just: !!this.state.justDone[t.id], color, projName:p.name,
+      dotStyle:'width:7px;height:7px;border-radius:50%;flex:none;background:'+color,
+      dateLabel:this.fmtShort(dateStr), titleStyle,
+      burstStyle:'position:absolute;inset:0;border-radius:50%;border:2px solid '+color+';animation:burst .7s cubic-bezier(.2,.7,.3,1) forwards;pointer-events:none',
+      editValue:this.state.draft.edit||'',
+      onToggle:()=>this.toggle(t.id),
+      onStartEdit:()=>this.startEdit(t.id),
+      onDelete:()=>this.del(t.id),
+      onEditInput:(e)=>this.setDraft('edit', e.target.value),
+      onEditKey:(e)=>{ if(e.key==='Enter') this.commitEdit(); if(e.key==='Escape') this.cancelEdit(); },
+      onEditBlur:()=>this.commitEdit()
+    }, extra||{});
+  }
+
+  renderVals(){
+    const a = this.accent();
+    const today = this.today();
+    const tstr = this.ymd(today);
+    const mon = this.mondayOf(today);
+    const projects = this.state.projects;
+    const view = this.state.view;
+    const isMobile = this.state.vw < 880;
+    const now = new Date();
+    const hr = now.getHours();
+    const name = this.props.greetingName ? (', ' + this.props.greetingName) : '';
+    const greeting = (hr<12 ? 'Good morning' : hr<18 ? 'Good afternoon' : 'Good evening') + name;
+    const dateLine = this.WDL[today.getDay()] + ', ' + this.MON[today.getMonth()] + ' ' + today.getDate();
+    const projPct = (p) => { let d=0,t=0; p.weeks.forEach(w=>w.tasks.forEach(x=>{ t++; if(x.done) d++; })); return { d, t, frac: t? d/t : 0 }; };
+    const tDate = (w,t) => this.taskDate(w.off, t.dayOffset);
+
+    const navBase = 'display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;border:none;border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;text-align:left;margin-bottom:3px;transition:background .15s,color .15s;';
+    const navStyle = (on) => navBase + (on ? 'background:#211f1c;color:#f4efe6' : 'background:transparent;color:#56524a');
+    let todayCount=0; projects.forEach(p=>p.weeks.forEach(w=>w.tasks.forEach(t=>{ if(tDate(w,t)===tstr) todayCount++; })));
+
+    const streak = this.streak();
+    const streakDots = [];
+    for(let k=6;k>=0;k--){ const ds=this.ymd(this.addDays(today,-k)); const on=this.state.completed.has(ds); streakDots.push({ style:'width:18px;height:6px;border-radius:99px;flex:1;background:'+(on? a : '#46423a') }); }
+    const streakLabel = streak>=2 ? (streak+' days strong — keep going') : streak===1 ? 'day one. keep it alive' : 'complete one task to start';
+
+    const sideProjects = projects.map(p => {
+      const s = projPct(p); const pct=Math.round(s.frac*100); const color=this.pc(p.hue);
+      const active = view==='project' && this.state.selProject===p.id;
+      return { id:p.id, name:p.name, pctLabel:pct+'%',
+        onClick:()=>this.setState({ view:'project', selProject:p.id }),
+        rowStyle:'display:flex;align-items:center;gap:11px;width:100%;border:none;cursor:pointer;text-align:left;padding:9px 8px;border-radius:11px;margin-bottom:1px;transition:background .15s;background:'+(active?'#e0d9ca':'transparent'),
+        dotStyle:'width:9px;height:9px;border-radius:50%;flex:none;background:'+color,
+        barStyle:'display:block;height:100%;border-radius:99px;width:'+pct+'%;background:'+color+';transition:width .6s cubic-bezier(.2,.7,.3,1)' };
+    });
+
+    // ---- TODAY ----
+    let tDone=0, tTotal=0;
+    const todayGroups = projects.map(p => {
+      const tasks=[]; p.weeks.forEach(w=>w.tasks.forEach(t=>{ if(tDate(w,t)===tstr) tasks.push(this.rTask(t,w,p,tstr)); }));
+      if(!tasks.length) return null;
+      const done=tasks.filter(t=>t.done).length; tDone+=done; tTotal+=tasks.length;
+      const key='today:'+p.id;
+      return { id:p.id, name:p.name, count:done+'/'+tasks.length, tasks,
+        dotStyle:'width:9px;height:9px;border-radius:50%;flex:none;background:'+this.pc(p.hue),
+        addValue:this.state.draft[key]||'',
+        onAddInput:(e)=>this.setDraft(key,e.target.value),
+        onAddKey:(e)=>{ if(e.key==='Enter') this.addToday(p.id); } };
+    }).filter(Boolean);
+    const todayFrac = tTotal? tDone/tTotal : 0;
+    const todayEmpty = tTotal===0;
+    const todayAllDone = tTotal>0 && tDone===tTotal;
+    const todayHeadline = todayAllDone ? 'Today is done. Beautifully.' : tDone>0 ? 'Good momentum today' : 'Let\u2019s get the first one';
+    const todaySub = todayEmpty ? '' : todayAllDone ? 'Every task checked off — that\u2019s the chain extended.' : tDone+' of '+tTotal+' tasks complete · '+(tTotal-tDone)+' to go';
+
+    // ---- WEEK ----
+    const weekProjects = projects.map(p => {
+      const w=p.weeks.find(x=>x.off===0); if(!w) return null;
+      const done=w.tasks.filter(t=>t.done).length; const frac=w.tasks.length? done/w.tasks.length : 0;
+      return { id:p.id, name:p.name, goal:w.goal||'No weekly goal set', ring:this.ringOf(frac, this.pc(p.hue), 44), onClick:()=>this.setState({ view:'project', selProject:p.id }) };
+    }).filter(Boolean);
+    const showWeekends = this.props.showWeekends !== false;
+    const dayCount = showWeekends ? 7 : 5;
+    const weekDays = [];
+    for(let dd=0; dd<dayCount; dd++){
+      const date=this.addDays(mon,dd); const ds=this.ymd(date); const isToday=ds===tstr;
+      const tasks=[]; projects.forEach(p=>p.weeks.forEach(w=>w.tasks.forEach(t=>{ if(tDate(w,t)===ds) tasks.push(this.rTask(t,w,p,ds)); })));
+      weekDays.push({ num:date.getDate(), wd:this.WDS[date.getDay()], empty:tasks.length===0, tasks,
+        rowStyle:'display:flex;gap:14px;padding:14px 14px;border-radius:16px;margin-bottom:8px;border:1px solid '+(isToday?'#e8c8b3':'#ebe4d6')+';background:'+(isToday?'#fbf3ec':'#faf7f1'),
+        numStyle:'font-family:"Schibsted Grotesk",sans-serif;font-weight:700;font-size:21px;line-height:1;color:'+(isToday? a : '#3a362f') });
+    }
+
+    // ---- PROJECT ----
+    const sel = projects.find(p=>p.id===this.state.selProject) || projects[0];
+    const selStat = projPct(sel);
+    const projRing = this.ringOf(selStat.frac, this.pc(sel.hue), 64);
+    const projChips = projects.map(p => {
+      const active=p.id===sel.id; const color=this.pc(p.hue);
+      return { id:p.id, name:p.name, onClick:()=>this.setState({ view:'project', selProject:p.id }),
+        dotStyle:'width:8px;height:8px;border-radius:50%;flex:none;background:'+color,
+        style:'display:flex;align-items:center;gap:8px;flex:none;border:1px solid '+(active?'#211f1c':'#e0d9ca')+';background:'+(active?'#211f1c':'#faf7f1')+';color:'+(active?'#f4efe6':'#56524a')+';border-radius:99px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap' };
+    });
+    const tagText = { '-1':'Last week', '0':'This week', '1':'Next week' };
+    const projWeeks = [0,1,-1].map(off => {
+      const w=sel.weeks.find(x=>x.off===off); if(!w) return null;
+      const done=w.tasks.filter(t=>t.done).length; const frac=w.tasks.length? done/w.tasks.length : 0; const cur=off===0;
+      const wStartStr=this.ymd(this.weekStart(off));
+      const tasksSorted=[...w.tasks].sort((x,y)=>x.order-y.order);
+      const tasks=tasksSorted.map((t,i)=> this.rTask(t,w,sel,tDate(w,t),{
+        draggable:true, index:i,
+        rowStyle:'display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:10px;transition:background .12s',
+        onDragStart:()=>this.setState({ drag:{ weekId:w.id, index:i } }),
+        onDragOver:(e)=>e.preventDefault(),
+        onDrop:()=>this.dropAt(w.id,i),
+        onUp:()=>this.move(w.id,t.id,-1),
+        onDown:()=>this.move(w.id,t.id,1)
+      }));
+      const key='add:'+w.id;
+      const goalEditing=this.state.editingGoal===w.id;
+      const hasGoal=w.goal && w.goal.trim();
+      return { id:w.id, goal:w.goal, range:this.fmtRange(wStartStr), tag:tagText[String(off)], stat:done+'/'+w.tasks.length,
+        ring:this.ringOf(frac, this.pc(sel.hue), 40), tasks,
+        cardStyle:'background:#faf7f1;border:1px solid '+(cur?'#e6d4c4':'#ebe4d6')+';border-radius:18px;padding:14px 14px 10px;margin-bottom:16px'+(cur?';box-shadow:0 2px 14px rgba(180,100,50,.06)':''),
+        tagStyle:'font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;flex:none;'+(cur?('background:'+a+';color:#fff'):'background:#ece5d8;color:#8a8273'),
+        goalEditing, goalNotEditing:!goalEditing,
+        goalDisplay: hasGoal ? w.goal : 'Set a weekly goal',
+        goalStyle:'display:block;text-align:left;background:none;border:none;cursor:text;padding:1px 0;margin-top:3px;font-family:"Schibsted Grotesk",sans-serif;font-weight:600;font-size:16.5px;letter-spacing:-.01em;'+(hasGoal?'color:#2a2720':'color:#b4ac9c;font-style:italic;font-weight:500'),
+        goalValue:this.state.draft.goal||'',
+        onGoalEdit:()=>this.startGoal(w.id),
+        onGoalInput:(e)=>this.setDraft('goal',e.target.value),
+        onGoalKey:(e)=>{ if(e.key==='Enter') this.commitGoal(); if(e.key==='Escape') this.cancelGoal(); },
+        onGoalBlur:()=>this.commitGoal(),
+        addValue:this.state.draft[key]||'',
+        onAddInput:(e)=>this.setDraft(key,e.target.value),
+        onAddKey:(e)=>{ if(e.key==='Enter') this.add(w.id); } };
+    }).filter(Boolean);
+
+    // ---- RECAP ----
+    let rTotal=0, rDone=0; const byDay={};
+    const byProj = projects.map(p => {
+      let pt=0, pd=0;
+      p.weeks.forEach(w=>{ if(w.off!==0) return; w.tasks.forEach(t=>{ pt++; rTotal++; if(t.done){ pd++; rDone++; const ds=tDate(w,t); byDay[ds]=(byDay[ds]||0)+1; } }); });
+      if(pt===0) return null;
+      const pct=Math.round((pd/pt)*100);
+      return { name:p.name, stat:pd+'/'+pt, dotStyle:'width:9px;height:9px;border-radius:50%;flex:none;background:'+this.pc(p.hue), barStyle:'display:block;height:100%;border-radius:99px;width:'+pct+'%;background:'+this.pc(p.hue)+';transition:width .6s ease' };
+    }).filter(Boolean);
+    let bestDate=null, bestN=0; Object.keys(byDay).forEach(k=>{ if(byDay[k]>bestN){ bestN=byDay[k]; bestDate=k; } });
+    const bestLine = bestDate ? ('best day: '+this.WDS[this.parse(bestDate).getDay()]+' ('+bestN+')') : 'just getting started';
+    const recap = { total:rTotal, done:rDone, bestLine, ring:this.ringOf(rTotal? rDone/rTotal : 0, a, 64), byProject:byProj };
+
+    const tabBase='flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;padding:6px 0;border-radius:12px;';
+    const tabStyle=(on)=>tabBase+'color:'+(on? '#211f1c' : '#9a9384');
+
+    return {
+      accent:a, showSidebar:!isMobile, showBottomNav:isMobile, isMobile,
+      greeting, dateLine,
+      headerPad: isMobile ? 'padding:14px 16px 13px' : 'padding:18px 34px 16px',
+      contentPad: isMobile ? 'padding:18px 14px 96px' : 'padding:26px 34px 64px;max-width:920px',
+      onToday:()=>this.setState({view:'today'}),
+      onWeek:()=>this.setState({view:'week'}),
+      onProjects:()=>this.setState({view:'project'}),
+      onOpenRecap:()=>this.setState({recapOpen:true}),
+      onCloseRecap:()=>this.setState({recapOpen:false}),
+      recapOpen:this.state.recapOpen, stop:(e)=>e.stopPropagation(),
+      isToday:view==='today', isWeek:view==='week', isProject:view==='project',
+      viewTitle: view==='today' ? 'Today' : view==='week' ? 'This Week' : sel.name,
+      viewSub: view==='today' ? dateLine : view==='week' ? this.fmtRange(this.ymd(mon)) : (sel.handle+' · '+selStat.d+'/'+selStat.t+' tasks done'),
+      navTodayStyle:navStyle(view==='today'), navWeekStyle:navStyle(view==='week'), navProjStyle:navStyle(view==='project'),
+      navTodayCount:todayCount,
+      navTodayBadge:'font-size:11px;font-family:"JetBrains Mono",monospace;font-weight:600;padding:1px 7px;border-radius:99px;'+(view==='today'?'background:rgba(244,239,230,.2);color:#f4efe6':'background:'+a+';color:#fff'),
+      tabTodayStyle:tabStyle(view==='today'), tabWeekStyle:tabStyle(view==='week'), tabProjStyle:tabStyle(view==='project'),
+      streak, streakDots, streakLabel, sideProjects,
+      newProjOpen:this.state.newProj, newProjClosed:!this.state.newProj,
+      newProjOpenMobile:this.state.newProj && isMobile, newProjClosedMobile:!(this.state.newProj && isMobile),
+      newProjValue:this.state.draft.newproj||'',
+      onNewProjStart:()=>this.startNewProj(),
+      onNewProjInput:(e)=>this.setDraft('newproj',e.target.value),
+      onNewProjKey:(e)=>{ if(e.key==='Enter') this.commitNewProj(); if(e.key==='Escape') this.cancelNewProj(); },
+      onNewProjCancel:()=>this.cancelNewProj(),
+      todayRing:this.ringOf(todayFrac, a, 70), todayGroups, todayEmpty, todayHeadline, todaySub,
+      weekProjects, weekDays, weekGridCols: isMobile ? '1fr' : 'repeat(3,1fr)',
+      projChips, sel:{ name:sel.name, sub:sel.handle+' · '+selStat.d+' of '+selStat.t+' tasks complete' }, projRing, projWeeks,
+      canDelete: projects.length>1, onDeleteProject:()=>this.deleteProject(sel.id),
+      recap
+    };
+  }
+}
+</script>
+</body>
+</html>
